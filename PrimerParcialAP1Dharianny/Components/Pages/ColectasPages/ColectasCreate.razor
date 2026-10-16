@@ -1,0 +1,70 @@
+﻿@page "/Colectas/Create"
+@rendermode InteractiveServer
+@inject ColectasService colectasService
+@inject ToastService toastService
+
+<PageTitle> Crear Colecta</PageTitle>
+
+<EditForm Model="Colecta" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="card-title mt-2"> Crear Colecta </h5>
+            </div>
+
+            <div class="card-body">
+                @*IdColecta*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Id</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Colecta.AporteId" readonly></InputNumber>
+                </div>
+
+                @*Fecha*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fecha</strong></label>
+                    <InputDate class="form-control" @bind-Value="Colecta.Fecha"></InputDate>
+                    <ValidationMessage For="() => Colecta.Fecha" />
+                </div>
+
+                @*Nombres*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Nombres</strong></label>
+                    <InputText class="form-control" @bind-Value="Colecta.Nombres"></InputText>
+                    <ValidationMessage For="() => Colecta.Nombres" />
+                </div>
+
+                @*Monto*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Monto</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Colecta.Monto"></InputNumber>
+                    <ValidationMessage For="() => Colecta.Monto" />
+                </div>
+
+                <div class="card-footer text-center mr-3">
+                    <a href="/Colectas/Index" class="btn btn-secondary"><span class="bi bi-arrow-left"></span> Volver</a>
+                    <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Colectas Colecta = new Colectas();
+
+    private async Task Guardar()
+    {
+        bool guardado = await colectasService.Guardar(Colecta);
+
+        if (guardado)
+        {
+            toastService.ShowSuccess("Colecta Guardada Exitosamente");
+            navigationManager.NavigateTo("/Colectas/Index");
+        }
+        else
+        {
+            toastService.ShowError("Error al Guardar la Colecta");
+        }
+    }
+}

@@ -1,0 +1,116 @@
+﻿@page "/Colectas/Index"
+@rendermode InteractiveServer
+@inject ColectasService colectasService
+@inject ToastService toastService
+
+<PageTitle> Registro de Colectas</PageTitle>
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-content-center mb-4">
+            <h5 class="card-title mt-2"> Registro de Colectas </h5>
+            <a href="/Colectas/Create" class="btn btn-primary"><span class="bi bi-plus-square mt-3"></span> Crear</a>
+        </div>
+
+        <div class="card-body">
+            @*Labels*@
+            <div class="row">
+
+                @*Filtrar Por*@
+                <div class="col-3">
+                    <label class="col-form-label"><strong>Filtrar por</strong></label>
+                </div>
+
+                @*ValorFiltro*@
+                <div class="col-4">
+                    <label class="col-form-label"><strong>B&uacute;squeda</strong></label>
+                </div>
+            </div>
+
+            @*inputs y botones*@
+            <div class="row align-items-center">
+                @*Filtro*@
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="" selected disabled> Elija una opci&oacute;n</option>
+                        <option value="Nombres"> Nombre</option>
+                        <option value="Fecha"> Fecha</option>
+                    </InputSelect>
+                </div>
+
+                @*Busqueda*@
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control" @bind="ValorFiltro" placeholder="Buscar" />
+                        <button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid mt-2">
+                <QuickGrid Items="@itemsQueryable">
+                    <PropertyColumn property="@(c => c.AporteId)" title="Colecta" Sortable="true" Align="Align.Left" />
+                    <PropertyColumn property="@(c => c.Fecha)" title="Fecha" Sortable="true" Align="Align.Left" Format="dd/MM/yyyy"/>
+                    <PropertyColumn property="@(c => c.Nombres)" title="Nombres" Sortable="true" Align="Align.Left" />
+                    <PropertyColumn property="@(c => c.Monto)" title="Monto" Sortable="true" Align="Align.Left" Format="N2"/>
+                    <TemplateColumn Title="Opciones">
+                        <a href="/Colectas/Edit/@context.AporteId" type="button" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+
+        </div>
+        <div class="card-footer d-flex justify-content-between align-center mb-4">
+            <label><strong>Cantidad: </strong>@itemsQueryable?.Count()</label>
+            <label><strong>Total Colectas: </strong>$@itemsQueryable?.Sum(c => c.Monto).ToString("N2")</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+
+    public IQueryable<Colectas> itemsQueryable;
+    public Colectas colecta { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var items = await colectasService.GetList(c => true);
+        itemsQueryable = items.AsQueryable();
+    }
+
+    private async Task Buscar()
+    {
+        if(ValorFiltro.Trim() == "")
+        {
+            var items = await colectasService.GetList(c => true);
+            itemsQueryable = items.AsQueryable();
+        }
+        else if (ValorFiltro.Trim() != "" && Filtro == "Nombres")
+        {
+            var nombres = await colectasService.GetList(c => c.Nombres.ToLower().Contains(ValorFiltro.ToLower()));
+            itemsQueryable = nombres.AsQueryable();
+        }
+        else if (ValorFiltro.Trim() != "" && Filtro == "Fecha")
+        {
+            var fecha = await colectasService.GetList(c => c.Fecha.ToString().Contains(ValorFiltro));
+            itemsQueryable = fecha.AsQueryable();
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        bool eliminado = await colectasService.Eliminar(colecta.AporteId);
+
+        if (eliminado)
+        {
+            var items = await colectasService.GetList(c => true);
+            itemsQueryable = items.AsQueryable();
+            toastService.ShowSuccess("Colecta Eliminada Exitosamente");
+        }
+        else
+        {
+            toastService.ShowError("Error al Eliminar la Colecta");
+        }
+    }
+}
