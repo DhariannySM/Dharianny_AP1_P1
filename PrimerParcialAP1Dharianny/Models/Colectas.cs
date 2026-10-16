@@ -15,5 +15,5 @@ public class Colectas
     public string Nombres { get; set; } = null!;
 
     [Range(1, double.MaxValue, ErrorMessage = "El monto debe ser mayor que cero.")]
-    public double? Monto { get; set; }
+    public double Monto { get; set; }
 }
